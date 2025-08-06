@@ -19,7 +19,7 @@ def query(limit = 10 ,published : bool = True, sort : Optional[str] = None):
   else:
     return {'data':f"{limit} blogs not published"}
   
- 
+
 @app.get('/blog/{id}')
 def detail(id: int):
   return {'id': id}
@@ -28,7 +28,6 @@ class Blog(BaseModel):
   title : str
   body : str
   published : Optional[bool]
-
 
 
 @app.post('/create')
