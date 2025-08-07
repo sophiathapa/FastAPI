@@ -1,8 +1,7 @@
-from fastapi import FastAPI,Depends,status, HTTPException
-from .schemas import Blog
-from . import models
+from fastapi import FastAPI,Depends,status, HTTPException , Request
+from . import models, schemas
 from .database import engine,SessionLocal
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session 
 
 app = FastAPI()
 models.Base.metadata.create_all(engine)
@@ -15,14 +14,15 @@ def get_db():
     db.close()
 
 @app.post('/blog',status_code= status.HTTP_201_CREATED)
-def create(request : Blog, db: Session = Depends(get_db)):
+def create(request : schemas.Blog, db: Session = Depends(get_db)):
   new_blog = models.Blog(title = request.title , body=request.body)
   db.add(new_blog)
   db.commit()
   db.refresh(new_blog)
   return new_blog
 
-@app.get('/blog')
+
+@app.get('/blog',response_model=list[schemas.ShowBlog])
 def all(db: Session = Depends(get_db)):
   blog = db.query(models.Blog).all()
   return blog
@@ -38,17 +38,29 @@ def show(id, db: Session= Depends(get_db)):
 
 @app.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def remove(id,db: Session = Depends(get_db)):
-  db.query(models.Blog).filter(models.Blog.id == id).delete(synchronize_session=False)
+  blog = db.query(models.Blog).filter(models.Blog.id == id)
+  if not blog.first():
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"The blog with id {id} is not available")
+  blog.delete(synchronize_session=False)
   db.commit()
   return f"the blog of id {id} is deleleted"
 
 @app.put('/blog/{id}',status_code=status.HTTP_202_ACCEPTED)
-def update(id,request: Blog, db: Session = Depends(get_db)):
-  db.query(models.Blog).filter(models.Blog.id == id).update(request.dict())
+def update(id,request: schemas.Blog, db: Session = Depends(get_db)):
+  blog = db.query(models.Blog).filter(models.Blog.id == id)
+  if not blog.first():
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"The blog with id {id} is not available")
+  blog.update(request.dict())
   db.commit()
-  return "updated"
+  return f"The blog with id {id} is Updated"
 
 
-
+@app.post('/user',status_code=status.HTTP_201_CREATED)
+def create_user(request: schemas.User, db : Session = Depends(get_db)):
+  new_user = models.User(name = request.name,address = request.address,password = request.password)
+  db.add(new_user)
+  db.commit()
+  db.refresh()
+  return "User Created"
 
 
