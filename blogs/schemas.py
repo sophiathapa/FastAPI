@@ -4,12 +4,6 @@ class Blog(BaseModel):
   title: str
   body: str
 
-class ShowBlog(BaseModel):
-  title: str
-  body : str
-  class config():
-    orm_mode = True
-
 class User(BaseModel):
   name: str
   address: str
@@ -20,3 +14,11 @@ class ShowUsers(BaseModel):
   address: str
   class config():
     orm_mode = True
+
+class ShowBlog(BaseModel):
+  title: str
+  body : str
+  creator : ShowUsers
+  class config():
+    orm_mode = True
+
