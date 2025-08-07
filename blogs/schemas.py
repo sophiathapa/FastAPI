@@ -1,9 +1,13 @@
 from pydantic import BaseModel
 
-class Blog(BaseModel):
+class BaseBlog(BaseModel):
   title: str
   body: str
 
+class Blog(BaseBlog):
+  def config():
+    orm_mode = True
+    
 class User(BaseModel):
   name: str
   address: str
@@ -12,6 +16,7 @@ class User(BaseModel):
 class ShowUsers(BaseModel):
   name : str
   address: str
+  blogs: list[Blog] = []
   class config():
     orm_mode = True
 
