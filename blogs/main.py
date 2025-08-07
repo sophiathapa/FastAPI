@@ -2,6 +2,7 @@ from fastapi import FastAPI,Depends,status, HTTPException , Request
 from . import models, schemas
 from .database import engine,SessionLocal
 from sqlalchemy.orm import Session 
+from .hashing import hash
 
 app = FastAPI()
 models.Base.metadata.create_all(engine)
@@ -12,6 +13,7 @@ def get_db():
     yield db
   finally:
     db.close()
+
 
 @app.post('/blog',status_code= status.HTTP_201_CREATED)
 def create(request : schemas.Blog, db: Session = Depends(get_db)):
@@ -57,10 +59,16 @@ def update(id,request: schemas.Blog, db: Session = Depends(get_db)):
 
 @app.post('/user',status_code=status.HTTP_201_CREATED)
 def create_user(request: schemas.User, db : Session = Depends(get_db)):
-  new_user = models.User(name = request.name,address = request.address,password = request.password)
+  new_user = models.User(name = request.name,address = request.address,password = hash.bycrpt(request.password))
   db.add(new_user)
   db.commit()
-  db.refresh()
-  return "User Created"
+  db.refresh(new_user)
+  return new_user
+
+
+@app.get('/users',status_code=status.HTTP_200_OK,response_model=list[schemas.ShowUsers])
+def getUsers(db : Session = Depends(get_db)):
+  users = db.query(models.User).all()
+  return users
 
 
