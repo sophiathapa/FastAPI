@@ -3,9 +3,12 @@ from .. import models, schemas
 from ..database import get_db
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+  prefix='/blog',
+  tags=['Blog']
+)
 
-@router.post('/blog',status_code= status.HTTP_201_CREATED, tags=['Blog'])
+@router.post('/',status_code= status.HTTP_201_CREATED)
 def create(request : schemas.Blog, db: Session = Depends(get_db)):
   new_blog = models.Blog(title = request.title , body=request.body, user_id = 1)
   db.add(new_blog)
@@ -14,12 +17,12 @@ def create(request : schemas.Blog, db: Session = Depends(get_db)):
   return new_blog
 
 
-@router.get('/blog',response_model=list[schemas.ShowBlog], tags=['Blog'])
+@router.get('/',response_model=list[schemas.ShowBlog])
 def all(db: Session = Depends(get_db)):
   blog = db.query(models.Blog).all()
   return blog
 
-@router.get('/blog/{id}',response_model= schemas.ShowBlog,tags=['Blog'])
+@router.get('/{id}',response_model= schemas.ShowBlog,tags=['Blog'])
 def show(id, db: Session= Depends(get_db)):
   blog = db.query(models.Blog).filter(models.Blog.id == id).first()
   if not blog:
@@ -28,7 +31,7 @@ def show(id, db: Session= Depends(get_db)):
   return blog
 
 
-@router.delete('/blog/{id}',status_code=status.HTTP_204_NO_CONTENT, tags=['Blog'])
+@router.delete('/{id}',status_code=status.HTTP_204_NO_CONTENT)
 def remove(id,db: Session = Depends(get_db)):
   blog = db.query(models.Blog).filter(models.Blog.id == id)
   if not blog.first():
@@ -37,7 +40,7 @@ def remove(id,db: Session = Depends(get_db)):
   db.commit()
   return f"the blog of id {id} is deleleted"
 
-@router.put('/blog/{id}',status_code=status.HTTP_202_ACCEPTED, tags=['Blog'])
+@router.put('/{id}',status_code=status.HTTP_202_ACCEPTED)
 def update(id,request: schemas.Blog, db: Session = Depends(get_db)):
   blog = db.query(models.Blog).filter(models.Blog.id == id)
   if not blog.first():
