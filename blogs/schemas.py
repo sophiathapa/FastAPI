@@ -39,3 +39,17 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: str | None = None
+
+
+
+class Citizenship (BaseModel):
+  fullName : str
+  dob : str
+  gender : str
+  birthAddress : str
+  currentAddress : str
+  motherName : str
+  fatherName : str
+
+
+  

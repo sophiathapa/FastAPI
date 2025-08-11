@@ -1,6 +1,8 @@
-from fastapi import APIRouter,UploadFile,File
+from fastapi import APIRouter,UploadFile,File , status
 from pathlib import Path
 import shutil
+from .. import schemas
+import requests
 
 
 router = APIRouter(
@@ -48,6 +50,32 @@ async def receive_citizenship_image(file: UploadFile = File(...)):
     finally:
         # Close the file stream after processing
         await file.close()
+
+
+
+#  To send the data from the python server to the node server 
+
+THIRD_SERVER_URL = "http://localhost:3000/get-data"
+
+@router.post('/send' , status_code=status.HTTP_200_OK)
+def transerData(request : schemas.Citizenship):
+    payload = {
+    "fullName": request.fullName,
+    "dob": request.dob,
+    "gender": request.gender,
+    "birthAddress": request.birthAddress,
+    "currentAddress": request.currentAddress,
+    "motherName": request.motherName,
+    "fatherName": request.fatherName
+    }
+
+    print(f"Forwarding data to {THIRD_SERVER_URL}...")
+    third_server_response =  requests.post(
+        THIRD_SERVER_URL,
+        json=payload
+    )
+    return "data send"
+
 
 
 
